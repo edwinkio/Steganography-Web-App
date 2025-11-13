@@ -7,7 +7,7 @@ set_site_information(
     author="edwinko@udel.edu",
     description= "A website that lets you encode and decode messages from an image",
     sources=["Google Gemini was used for help on getting an image's name and saving said image"],
-    planning=["website_design.pdf"],
+    planning=["website_design.jpg"],
     links=["https://github.com/edwinko-alt/Steganography-Web-App"]
 )
 hide_debug_information()
