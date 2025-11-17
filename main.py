@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+
+from miscellaneous import *
 from drafter import *
 from decoder import *
 from encoder import *
@@ -33,8 +35,9 @@ def index(state: State) -> Page:
 def display_image(state : State, encoded_file: bytes) -> Page:
     state.image = PIL_Image.open(io.BytesIO(encoded_file)).convert('RGB')
     
-    return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image?", Image(state.image), 
-                        Button("Back", index), Button("Decode message", decode), Button("Encode a message", encode)])
+    return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image, or flip the image?", Image(state.image), 
+                        Button("Back", index), Button("Decode message", decode), Button("Encode a message", encode), Button("flip horizontal", flip_h),
+                         Button("flip_vertical", flip_v)])
 
 @route
 def encode(state: State) -> Page:
@@ -66,6 +69,18 @@ def decode(state: State) -> Page:
     green = get_color_values(display_image, 1)
 
     return Page(state, ["Your file has the message: ", get_encoded_message(green), Button("Return to home page", index)])
+
+@route
+def flip_h(state: State) -> Page:
+    state.image = flip_horizontal(state.image)
+
+    return Page(state, ["Your file has been flipped!", Image(state.image), Button("Return to home page", index)])
+
+@route
+def flip_v(state: State) -> Page:
+    state.image = flip_vertical(state.image)
+
+    return Page(state, ["Your file has been flipped!", Image(state.image), Button("Return to home page", index)])
 
 hide_debug_information()
 
