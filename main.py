@@ -321,9 +321,7 @@ set_site_information(
     planning=["website_design.jpg"],
     links=["https://github.com/edwinko-alt/Steganography-Web-App"]
 )
-hide_debug_information()
 set_website_title("Steganography")
 set_website_framed(False)
 
-hide_debug_information()
 start_server(State(None, None, "Hello, and welcome to my steganography site! Would you like to upload an image?", None, []))
