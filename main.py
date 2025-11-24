@@ -251,7 +251,7 @@ def flip_vertical(image: PIL_Image) -> PIL_Image:
 
 @dataclass
 class State:
-    image: PIL_Image = None
+    image: PIL_Image
     file_name: str = None
     display_message: str = None
     current_message: str = None
