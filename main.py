@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-
-import PIL.Image
+from PIL import Image as PIL_Image
 
 from drafter import *
 
@@ -108,14 +107,14 @@ def get_encoded_message(intensities: list[int]) -> str:
     last_index = (msg_length * 8) + 24
     return decode_chars(intensities[24:last_index], msg_length)
 
-def get_color_values(image: PIL.Image, channel_index: int) -> list[int]:
+def get_color_values(image: PIL_Image, channel_index: int) -> list[int]:
     """
-    Consumes a Pillow PIL.Image and an integer representing the channel index of the color values. 
+    Consumes a Pillow Image and an integer representing the channel index of the color values. 
     (0:red, 1:green, 2:blue) 
     and returns a list of integers containing the color intensity values for the specified channel.
 
     Args:
-        image (PIL.Image): A Pillow PIL.Image
+        image (PIL_Image): A Pillow Image
         channel_index (int): An integer representing which channel to choose from
     
     Returns:
@@ -201,17 +200,17 @@ def new_color_value(intensity: int, hidden_bit: str) -> int:
         return intensity
     return intensity - 1
 
-def hide_bits(image: PIL.Image, binary: str) -> PIL.Image:
+def hide_bits(image: PIL_Image, binary: str) -> PIL_Image:
     """
-    Consumes a Pillow PIL.Image and the binary string containing the bits that should be hidden in the 
-    image and returns a Pillow PIL.Image with the hidden message.
+    Consumes a Pillow Image and the binary string containing the bits that should be hidden in the 
+    image and returns a Pillow Image with the hidden message.
     
     Args:
-        image (PIL.Image): A Pillow image
+        image (PIL_Image): A Pillow image
         binary (str): The binary representation of the message to be encoded
         
     Returns:
-        PIL.Image: A new Pillow image with the hidden bits encoded
+        PIL_Image: A new Pillow image with the hidden bits encoded
     """
 
     width, length = image.size
@@ -227,7 +226,7 @@ def hide_bits(image: PIL.Image, binary: str) -> PIL.Image:
 
     return image
 
-def flip_horizontal(image: PIL.Image) -> PIL.Image:
+def flip_horizontal(image: PIL_Image) -> PIL_Image:
 
     width, length = image.size
 
@@ -239,7 +238,7 @@ def flip_horizontal(image: PIL.Image) -> PIL.Image:
 
     return image
 
-def flip_vertical(image: PIL.Image) -> PIL.Image:
+def flip_vertical(image: PIL_Image) -> PIL_Image:
 
     width, length = image.size
 
@@ -252,7 +251,7 @@ def flip_vertical(image: PIL.Image) -> PIL.Image:
 
 @dataclass
 class State:
-    image: PIL.Image
+    image: PIL_Image
     file_name: str = None
     display_message: str = None
     current_message: str = None
@@ -261,14 +260,12 @@ class State:
 @route
 def index(state: State) -> Page:
     raw_data = FileUpload("encoded_file", accept="image/png")
-    state.file_name = raw_data.name
 
     return Page(state, ["Please select a 'png' file to get started!.", raw_data, Button("Display", display_image)])
 
 @route
 def display_image(state : State, encoded_file: bytes) -> Page:
-    state.image = PIL.Image.open(io.BytesIO(encoded_file)).convert('RGB')
-    print(type(state.image))
+    state.image = PIL_Image.open(io.BytesIO(encoded_file)).convert('RGB')
     
     return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image, or flip the image?", Image(state.image), LineBreak(),
                         Row(Button("Back", index), LineBreak(), Button("Decode message", decode), Button("Encode a message", encode), LineBreak(), 
@@ -276,7 +273,7 @@ def display_image(state : State, encoded_file: bytes) -> Page:
 
 @route
 def encode(state: State) -> Page:
-    return Page(state, [PIL.Image(state.image), "Please type the message you would like to encode below. ", TextBox("message", "Start typing to get started!"), 
+    return Page(state, [Image(state.image), "Please type the message you would like to encode below. ", TextBox("message", "Start typing to get started!"), 
                 Button("Encode", encode_message)])
 
 @route
