@@ -1,4 +1,4 @@
-
+from PIL import Image as PIL_Image
 
 def get_message(characters: int) -> str:
     message = input("Please enter your secret message. \n")
