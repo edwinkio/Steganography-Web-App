@@ -4,8 +4,6 @@ from PIL import Image as PIL_Image
 
 from drafter import *
 
-IMAGE = None
-
 def even_or_odd_bit(num: int) -> str:
     """
     Consumes an integer and returns a '1' or '0', deprending on the parity of the number
@@ -286,8 +284,7 @@ def index(state: State) -> Page:
 
 @route
 def display_image(state : State, encoded_file: bytes) -> Page:
-    global IMAGE
-    IMAGE = PIL_Image.open(io.BytesIO(encoded_file)).convert('RGB')
+    state.image = PIL_Image.open(io.BytesIO(encoded_file)).convert('RGB')
     
     return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image, or flip the image?", Image(IMAGE), LineBreak(),
                         Row(Button("Back", index), LineBreak(), Button("Decode message", decode), Button("Encode a message", encode), LineBreak(), 
