@@ -1,3 +1,13 @@
+"""
+CISC106 Fall 2025 Final Project
+
+Author: Edwin Kodji
+
+A site that allows a user to upload images and perform various operations
+like encoding and decoding messages, as well as reflecting images
+across an axis.
+"""
+
 from dataclasses import dataclass
 
 from PIL import Image as PIL_Image
@@ -228,7 +238,7 @@ def hide_bits(image: PIL_Image, binary: str) -> PIL_Image:
     return image
 
 def flip_horizontal(image: PIL_Image) -> PIL_Image:
-    """1
+    """
     Consumes a Pillow Image and returns an image flipped horizontally
     
     Args:
@@ -270,29 +280,37 @@ def flip_vertical(image: PIL_Image) -> PIL_Image:
 
 @dataclass
 class State:
-    image: PIL_Image
+    image: PIL_Image = None
+    previous_image: PIL_Image = None
     file_name: str = None
-    display_message: str = None
+    display_message: str = "Hello, and welcome to my steganography site! Upload a PNG image to get started!"
     current_message: str = None
     pixel_data: list[int] = None
 
 @route
 def index(state: State) -> Page:
     raw_data = FileUpload("encoded_file", accept="image/png")
+    state.file_name = raw_data.name
 
-    return Page(state, ["Please select a 'png' file to get started!.", raw_data, Button("Display", display_image)])
+    if state.previous_image:
+        return Page(state, [state.display_message, raw_data, Button("Display", display_image), LineBreak(), underline(bold("Previous images")), 
+                            LineBreak(), Image(state.previous_image)])
+    return Page(state, [state.display_message, raw_data, Button("Display", display_image), LineBreak(), underline("Your most recent image will appear below")])
 
 @route
 def display_image(state : State, encoded_file: bytes) -> Page:
+    """
+    Displays an image on the page and offers various options
+    """
     state.image = PIL_Image.open(io.BytesIO(encoded_file)).convert('RGB')
-    
-    return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image, or flip the image?", Image(IMAGE), LineBreak(),
-                        Row(Button("Back", index), LineBreak(), Button("Decode message", decode), Button("Encode a message", encode), LineBreak(), 
+    state.previous_image = state.image
+    return Page(state, ["Here is your image! Would you like to encode a message, or decode one from the image, or flip the image?", Image(state.image), LineBreak(),
+                        Row(Button("Back", index), Button("Decode message", decode), Button("Encode a message", encode), 
                         Button("flip horizontal", flip_h), Button("flip_vertical", flip_v))])
 
 @route
 def encode(state: State) -> Page:
-    return Page(state, [Image(IMAGE), "Please type the message you would like to encode below. ", TextBox("message", "Start typing to get started!"), 
+    return Page(state, [Image(state.image), "Please type the message you would like to encode below. ", TextBox("message", "Start typing to get started!"), 
                 Button("Encode", encode_message)])
 
 @route
@@ -303,34 +321,38 @@ def encode_message(state: State, message: str):
     binary_string = message_to_binary(message_with_header)  # convert the full message to a binary string    
     state.image = hide_bits(state.image, binary_string) # encode the message into the image
     
-    return Page(state, ["Would you like to save your file?", Button("Save", save_message), Button("Home Page", index)])
+    return Page(state, ["Would you like to save your file?", Image(state.image), Button("Save", save_message), Button("Home Page", index)])
 
 @route
 def save_message(state: State):
-    
     # save the updated image with a new file name
     new_file_name = "1_" + state.file_name  + ".png" # format of 1 + old filename (1 represents green channel)  
     
-    return Page(state, ["Your file has been saved!", Download("download", new_file_name, state.image, "image/png") , "Would you like to encode enother message?", Button("Encode", encode), Button("Home Page", index)])
+    return Page(state, ["Your file has been saved!", Download("download", new_file_name, state.image, "image/png") , "Would you like to encode enother message?", 
+                        Button("Encode", encode), Button("Home Page", index)])
 
 @route
 def decode(state: State) -> Page:
     display_image = state.image
     state.pixel_data = get_color_values(display_image, 1)
+    data = get_encoded_message(state.pixel_data)
 
-    return Page(state, ["Your file has the message: ", get_encoded_message(state.pixel_data), Button("Return to home page", index)])
+    return Page(state, ["Your file has the message: ", data, "Do you want to download this message?", Download("download", "decoded_message", data, "text/plain"), 
+                        Button("Return to home page", index)])
 
 @route
 def flip_h(state: State) -> Page:
     state.image = flip_horizontal(state.image)
     
-    return Page(state, ["Your file has been flipped!", Image(state.image), Button("Return to home page", index)])
+    return Page(state, ["Your file has been flipped!", Image(state.image), "Would you like to save your file?", Button("Save", save_message), 
+                        Button("Home Page", index)])
 
 @route
 def flip_v(state: State) -> Page:
     state.image = flip_vertical(state.image)
 
-    return Page(state, ["Your file has been flipped!", Image(state.image), Button("Return to home page", index)])
+    return Page(state, ["Your file has been flipped!", Image(state.image), "Would you like to save your file?", Button("Save", save_message), 
+                        Button("Home Page", index)])
 
 set_site_information(
     author="edwinko@udel.edu",
@@ -339,7 +361,10 @@ set_site_information(
     planning=["website_design.jpg"],
     links=["https://github.com/edwinko-alt/Steganography-Web-App"]
 )
-set_website_title("Steganography")
-set_website_framed(False)
 
-start_server(State(None, None, "Hello, and welcome to my steganography site! Would you like to upload an image?", None, []))
+set_website_title("Edwin's Steganography Site")
+set_website_framed(False)
+set_website_style("simple")
+hide_debug_information()
+
+start_server()
